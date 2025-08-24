@@ -3,18 +3,35 @@
     "version": "1.0.0",
     "type": "commonjs",
     "scripts": {
-      "start": "node server.js",
-      "dev": "nodemon server.js"
+        "start": "node server.js",
+        "dev": "nodemon server.js"
     },
     "dependencies": {
-      "cors": "^2.8.5",
-      "dotenv": "^16.4.5",
-      "express": "^4.19.2",
-      "jsonwebtoken": "^9.0.2",
-      "mysql2": "^3.11.0"
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.21.2",
+        "jsonwebtoken": "^9.0.2",
+        "mysql2": "^3.14.3"
     },
     "devDependencies": {
-      "nodemon": "^3.1.4"
-    }
-  }
-  
+        "nodemon": "^3.1.4"
+    },
+    "description": "A sample command-line application with an entrypoint in `bin/`, library code in `lib/`, and example unit test in `test/`.",
+    "main": "app.js",
+    "directories": {
+        "lib": "lib",
+        "test": "test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Araya8/dart_git.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Araya8/dart_git/issues"
+    },
+    "homepage": "https://github.com/Araya8/dart_git#readme"
+}
