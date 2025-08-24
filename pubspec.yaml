@@ -8,6 +8,10 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  sqflite_common_ffi: ^2.3.6
+  crypto: ^3.0.6
+  path: ^1.9.1
+  mysql1: ^0.20.0
   # path: ^1.8.0
 
 dev_dependencies:
