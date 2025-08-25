@@ -31,6 +31,20 @@ app.post('/login', async (req, res) => {
 
 
 /* ================= Add ================= */
+app.post('/add', async (req, res) => {
+  const { title, detail, date } = req.body || {};
+  const conn = await connectDB();
+
+  const [rows] = await conn.execute(
+    'INSERT INTO todos (title, detail, date) VALUES (?, ?, ?)',
+    [title, detail, date]
+  );
+
+  await conn.end();
+  if (rows.affectedRows === 0) return res.status(500).json({ error: 'failed to add todo' });
+
+  res.json({ message: 'todo added successfully', id: rows.insertId });
+});
 
 
 /* ================= Delete ================= */

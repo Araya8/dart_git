@@ -89,7 +89,15 @@ Future<void> searchExpense(MySqlConnection conn, int userId) async {
 
 /* ================= Features addExpense================= */
 Future<void> addExpense(MySqlConnection conn, int userId) async {
+  final title = _prompt('Enter title');
+  final amount = double.parse(_prompt('Enter amount'));
+  final date = _prompt('Enter date (YYYY-MM-DD)');
 
+  await conn.query(
+    'INSERT INTO expenses (user_id, title, amount, date) VALUES (?, ?, ?, ?)',
+    [userId, title, amount, date],
+  );
+  stdout.writeln('Expense added successfully!');
 }
 
 /* ================= Features deleteById================= */
