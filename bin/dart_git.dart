@@ -84,7 +84,21 @@ Future<void> showToday(MySqlConnection conn, int userId) async {
 
 /* ================= Features searchExpense================= */
 Future<void> searchExpense(MySqlConnection conn, int userId) async {
+  final keyword = _prompt('Search keyword');
+  final results = await conn.query(
+    'SELECT id, title, amount, date FROM expenses WHERE user_id = ? AND title LIKE ?',
+    [userId, '%$keyword%'],
+  );
 
+  if (results.isEmpty) {
+    stdout.writeln('No expenses found matching "$keyword".');
+    return;
+  }
+
+  stdout.writeln('Search Results:');
+  for (final row in results) {
+    stdout.writeln('ID: ${row[0]}, Title: ${row[1]}, Amount: ${row[2]}, Date: ${row[3]}');
+  }
 }
 
 /* ================= Features addExpense================= */

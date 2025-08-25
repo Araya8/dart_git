@@ -28,6 +28,18 @@ app.post('/login', async (req, res) => {
 /* ================= Show Today ================= */
 
 /* ================= Search ================= */
+app.get('/search', async (req, res) => {
+  const { keyword } = req.query;
+  const conn = await connectDB();
+
+  const [rows] = await conn.execute(
+    'SELECT id, title, detail, date FROM todos WHERE title LIKE ? OR detail LIKE ?',
+    [`%${keyword}%`, `%${keyword}%`]
+  );
+
+  await conn.end();
+  res.json({ todos: rows });
+});
 
 
 /* ================= Add ================= */
