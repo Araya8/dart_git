@@ -23,17 +23,27 @@ app.post('/login', async (req, res) => {
   res.json({ user: rows[0] }); // TODO: generate token ถ้าต้องการ
 });
 
-/* ================= Show All ================= */
-
 /* ================= Show Today ================= */
+app.get('/users/:userId/expenses/today', async (req, res) => {
+  const userId = Number(req.params.userId || 0);
+  if (!userId) return res.status(400).json({ error: 'invalid userId' });
 
-/* ================= Search ================= */
-
-
-/* ================= Add ================= */
-
-
-/* ================= Delete ================= */
+  const conn = await connectDB();
+  try {
+    const [rows] = await conn.execute(
+      'SELECT id, item, paid, `date` FROM expenses ' +
+      'WHERE user_id=? AND DATE(`date`) = CURDATE() ' +
+      'ORDER BY `date` DESC',
+      [userId]
+    );
+    const total = rows.reduce((s, r) => s + Number(r.paid || 0), 0);
+    res.json({ items: rows, total });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  } finally {
+    await conn.end();
+  }
+});
 
 
 /* ================= Start Server ================= */
