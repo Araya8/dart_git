@@ -8,6 +8,7 @@ const dbPort = 3306;          // ถ้า MySQL ใช้ 3307 ให้เป�
 const dbUser = 'root';
 const String? dbPass = null;  // <<< สำคัญ: root ไม่มีรหัส ต้องเป็น null (ไม่ใช่ '')
 const dbName = 'expense_app';
+const String? DEMO_TODAY = '2025-08-20'; // กำหนดวันเพื่อให้ ข้อมูล Today จะแสดงตามค่าที่ต้องการ
 
 /* ===== Helpers ===== */
 String _prompt(String label) {
@@ -108,19 +109,37 @@ Future<void> showAll(MySqlConnection conn, int userId) async {
   stdout.writeln('Total = \$$total');
 }
 
+/* ================= Features showtoday ================= */
 Future<void> showToday(MySqlConnection conn, int userId) async {
-  final rows = await conn.query(
-    'SELECT id, item, paid, date FROM expenses WHERE user_id=? AND DATE(date)=CURDATE() ORDER BY date DESC',
-    [userId],
-  );
-  if (rows.isEmpty) { stdout.writeln('No items paid today.'); return; }
-  int total = 0;
-  stdout.writeln('--- Paid today ---');
-  for (final r in rows) {
-    final id = r[0]; final item = r[1]; final paid = r[2] as int; final date = _fmtDate(r[3]);
-    total += paid; stdout.writeln('$id. $item  \$$paid  @ $date');
+  // ถ้ามี DEMO_TODAY ให้ query ด้วยวันที่นั้น ไม่งั้นใช้ CURDATE()
+  final String sql = (DEMO_TODAY == null)
+      ? 'SELECT id, item, paid, `date` FROM expenses '
+        'WHERE user_id=? AND DATE(`date`)=CURDATE() '
+        'ORDER BY `date` DESC'
+      : 'SELECT id, item, paid, `date` FROM expenses '
+        'WHERE user_id=? AND DATE(`date`)=? '
+        'ORDER BY `date` DESC';
+
+  final params = (DEMO_TODAY == null) ? [userId] : [userId, DEMO_TODAY];
+
+  final rows = await conn.query(sql, params);
+
+  if (rows.isEmpty) {
+    stdout.writeln("No items paid today.");
+    return;
   }
-  stdout.writeln("Today's total = \$$total");
+
+  stdout.writeln("------------ Today's expenses -----------");
+  int total = 0;
+  for (final r in rows) {
+    final id = r[0] as int;
+    final item = r[1] as String;
+    final paid = r[2] as int;
+    final dateStr = r[3].toString(); // จะได้รูปแบบ ... 13:27:39.000
+    total += paid;
+    stdout.writeln('$id. $item : ${paid}฿ : $dateStr');
+  }
+  stdout.writeln('Total expenses = ${total}฿');
 }
 
 Future<void> searchExpense(MySqlConnection conn, int userId) async {
