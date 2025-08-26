@@ -92,74 +92,46 @@ Welcome $username
   }
 }
 
-/* ===== Features ===== */
+/* ================= Features ================= */
+// TODO: ให้เพื่อน ๆ แต่ละคนมาเติมโค้ดข้างในเอง
+
+/* ================= Features  showall================= */
 Future<void> showAll(MySqlConnection conn, int userId) async {
-  final rows = await conn.query(
-    'SELECT id, item, paid, date FROM expenses WHERE user_id=? ORDER BY date DESC',
-    [userId],
-  );
-  if (rows.isEmpty) { stdout.writeln('No items.'); return; }
-  int total = 0;
-  stdout.writeln('--- All expenses ---');
-  for (final r in rows) {
-    final id = r[0]; final item = r[1]; final paid = r[2] as int; final date = _fmtDate(r[3]);
-    total += paid; stdout.writeln('$id. $item  \$$paid  @ $date');
-  }
-  stdout.writeln('Total = \$$total');
+  
 }
 
+/* ================= Features showtoday ================= */
 Future<void> showToday(MySqlConnection conn, int userId) async {
-  final rows = await conn.query(
-    'SELECT id, item, paid, date FROM expenses WHERE user_id=? AND DATE(date)=CURDATE() ORDER BY date DESC',
-    [userId],
-  );
-  if (rows.isEmpty) { stdout.writeln('No items paid today.'); return; }
-  int total = 0;
-  stdout.writeln('--- Paid today ---');
-  for (final r in rows) {
-    final id = r[0]; final item = r[1]; final paid = r[2] as int; final date = _fmtDate(r[3]);
-    total += paid; stdout.writeln('$id. $item  \$$paid  @ $date');
-  }
-  stdout.writeln("Today's total = \$$total");
+
 }
 
+/* ================= Features searchExpense================= */
 Future<void> searchExpense(MySqlConnection conn, int userId) async {
-  final kw = _prompt('Search keyword');
-  final rows = await conn.query(
-    'SELECT id, item, paid, date FROM expenses WHERE user_id=? AND item LIKE ? ORDER BY date DESC',
-    [userId, '%$kw%'],
-  );
-  if (rows.isEmpty) { stdout.writeln('No item containing "$kw".'); return; }
-  int total = 0;
-  stdout.writeln('--- Search result "$kw" ---');
-  for (final r in rows) {
-    final id = r[0]; final item = r[1]; final paid = r[2] as int; final date = _fmtDate(r[3]);
-    total += paid; stdout.writeln('$id. $item  \$$paid  @ $date');
-  }
-  stdout.writeln('Total = \$$total');
+
 }
 
+/* ================= Features addExpense================= */
 Future<void> addExpense(MySqlConnection conn, int userId) async {
-  final item = _prompt('Title');
-  final amountStr = _prompt('Amount (number)');
-  final amount = int.tryParse(amountStr);
-  if (item.isEmpty || amount == null || amount < 0) {
-    stdout.writeln('Invalid input.'); return;
-  }
-  await conn.query(
-    'INSERT INTO expenses (user_id, item, paid, date) VALUES (?, ?, ?, NOW())',
-    [userId, item, amount],
-  );
-  stdout.writeln('Added!');
+
 }
 
+/* ================= Features deleteById================= */
 Future<void> deleteById(MySqlConnection conn, int userId) async {
-  final idStr = _prompt('Enter expense id to delete');
-  final id = int.tryParse(idStr);
-  if (id == null) { stdout.writeln('Invalid id.'); return; }
-  final res = await conn.query(
-    'DELETE FROM expenses WHERE id=? AND user_id=?',
-    [id, userId],
-  );
-  stdout.writeln(res.affectedRows == 0 ? 'Nothing deleted.' : 'Deleted #$id.');
+
+}
+
+
+/* ================= Helpers ================= */
+String _prompt(String label) {
+  stdout.write('$label: ');
+  return stdin.readLineSync()!.trim();
+}
+
+String _promptHidden(String label) {
+  stdout.write('$label: ');
+  try { stdin.echoMode = false; } catch (_) {}
+  final s = stdin.readLineSync()!.trim();
+  try { stdin.echoMode = true; } catch (_) {}
+  stdout.writeln();
+  return s;
 }
