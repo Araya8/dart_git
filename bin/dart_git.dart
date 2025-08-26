@@ -45,7 +45,7 @@ Future<void> main() async {
 ''');
     switch (_prompt('Choose')) {
       case '1':
-        await showAll(conn, userId);
+        await showAll(conn, userId);  
         break;
       case '2':
         await showToday(conn, userId);
@@ -74,27 +74,29 @@ Future<void> main() async {
 
 /* ================= Features  showall================= */
 Future<void> showAll(MySqlConnection conn, int userId) async {
-  
-}
+  final results = await conn.query(
+    'SELECT id, item, paid, `date` '
+    'FROM expenses WHERE user_id = ? '
+    'ORDER BY `date` DESC',
+    [userId],
+  );
 
-/* ================= Features showtoday ================= */
-Future<void> showToday(MySqlConnection conn, int userId) async {
+  if (results.isEmpty) {
+    stdout.writeln('No expenses found.');
+    return;
+  }
 
-}
-
-/* ================= Features searchExpense================= */
-Future<void> searchExpense(MySqlConnection conn, int userId) async {
-
-}
-
-/* ================= Features addExpense================= */
-Future<void> addExpense(MySqlConnection conn, int userId) async {
-
-}
-
-/* ================= Features deleteById================= */
-Future<void> deleteById(MySqlConnection conn, int userId) async {
-
+  stdout.writeln('------------ All expenses ----------');
+  int total = 0;
+  for (final row in results) {
+    final id = row[0] as int;
+    final item = row[1] as String;
+    final paid = row[2] as int;
+    final dt = (row[3] as DateTime).toLocal();
+    total += paid;
+    stdout.writeln('$id. $item : ${paid}฿ : $dt');
+  }
+  stdout.writeln('Total expenses = ${total}฿');
 }
 
 

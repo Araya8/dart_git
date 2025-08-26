@@ -24,18 +24,23 @@ app.post('/login', async (req, res) => {
 });
 
 /* ================= Show All ================= */
+app.get('/users/:userId/expenses', async (req, res) => {
+  const userId = Number(req.params.userId || 0);
+  if (!userId) return res.status(400).json({ error: 'invalid userId' });
 
-/* ================= Show Today ================= */
-
-/* ================= Search ================= */
-
-
-/* ================= Add ================= */
-
-
-/* ================= Delete ================= */
-
-
-/* ================= Start Server ================= */
+  const conn = await connectDB();
+  try {
+    const [rows] = await conn.execute(
+      'SELECT id, item, paid, `date` FROM expenses WHERE user_id=? ORDER BY `date` DESC',
+      [userId]
+    );
+    const total = rows.reduce((s, r) => s + Number(r.paid || 0), 0);
+    res.json({ items: rows, total });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  } finally {
+    await conn.end();
+  }
+});
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
