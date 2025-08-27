@@ -2,6 +2,8 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 const readline = require('readline');
+const DEMO_TODAY = '2025-08-20'; 
+
 
 /* === MySQL Config (ตรงกับ db.sql; root ไม่มีรหัส) === */
 const dbConfig = {
@@ -64,20 +66,33 @@ async function showAll(){
   } finally { await conn.end(); menu(); }
 }
 
-async function showToday(){
+async function showToday() {
   const conn = await connectDB();
-  try{
-    const [rows] = await conn.execute(
-      `SELECT id,item,paid,date FROM expenses
-       WHERE user_id=? AND DATE(date)=CURDATE() ORDER BY date DESC`,
-      [currentUser.id]
-    );
-    if(!rows.length){ console.log('No items paid today.'); return; }
-    let total=0; console.log(`--- Today's expenses ---`);
-    rows.forEach(r=>{ console.log(`${r.id}. ${r.item} : ${r.paid}฿ : ${fmt(r.date)}`); total+=Number(r.paid);});
-    console.log(`Today's total = ${total}฿`);
-  } finally { await conn.end(); menu(); }
+  try {
+    const useDemo = DEMO_TODAY && /^\d{4}-\d{2}-\d{2}$/.test(DEMO_TODAY);
+    const sql = useDemo
+      ? `SELECT id,item,paid,\`date\` FROM expenses
+         WHERE user_id=? AND DATE(\`date\`)=? ORDER BY \`date\` DESC`
+      : `SELECT id,item,paid,\`date\` FROM expenses
+         WHERE user_id=? AND DATE(\`date\`)=CURDATE() ORDER BY \`date\` DESC`;
+    const params = useDemo ? [currentUser.id, DEMO_TODAY] : [currentUser.id];
+
+    const [rows] = await conn.execute(sql, params);
+    if (!rows.length) { console.log('No items paid today.'); return; }
+
+    let total = 0;
+    console.log("------------ Today's expenses -----------");
+    rows.forEach(r => {
+      console.log(`${r.id}. ${r.item} : ${r.paid}฿ : ${fmt(r.date)}`);
+      total += Number(r.paid);
+    });
+    console.log(`Total expenses = ${total}฿`);
+  } finally {
+    await conn.end();
+    menu();
+  }
 }
+
 
 async function search(){
   const kw = await ask('Search for: ');
