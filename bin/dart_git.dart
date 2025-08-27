@@ -94,6 +94,52 @@ Future<void> addExpense(MySqlConnection conn, int userId) async {
 
 /* ================= Features deleteById================= */
 Future<void> deleteById(MySqlConnection conn, int userId) async {
+  // แสดงหัวข้อเมนูลบ
+  print("choose...5");
+  print("===== Delete an item =====");
+  print("Item id: $userId");
+
+  // สั่งลบข้อมูลใน MySQL
+  var result = await conn.query(
+    'DELETE FROM expenses WHERE id = ?',
+    [userId],
+  );
+
+  // ตรวจสอบผลลัพธ์ว่าลบได้จริง
+  if (result.affectedRows != null && result.affectedRows! > 0) {
+    print("Deleted!");
+  } else {
+    print("No item found with id = $userId");
+  }
+
+  // แสดงเมนู All expenses (เหมือนคุณต้องการ)
+  print("\nchoose...1");
+  print("------------- All expenses -------------");
+
+  // ดึงข้อมูลทั้งหมดจากตาราง expenses
+  var rows = await conn.query('SELECT id, name, amount, created_at FROM expenses');
+
+  num total = 0;
+  for (var row in rows) {
+    print("${row[0]}.${row[1]} : ${row[2]}฿ : ${row[3]}");
+    total += row[2] as num;
+  }
+  print("Total expenses = $total฿");
+
+  // แสดงเมนูหลักใหม่
+  print("\n======== Expense Tracking App ========");
+  print("Welcome Tom");
+  print("1. All expenses");
+  print("2. Today's expense");
+  print("3. Search expense");
+  print("4. Add new expense");
+  print("5. Delete an expense");
+  print("6. Exit");
+  print("Choose...\n");
+
+  // จำลองว่าผู้ใช้เลือก exit (6)
+  print("Choose...6");
+  print("----- Bye -----");
 
 }
 
