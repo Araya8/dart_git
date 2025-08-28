@@ -4,7 +4,6 @@ const mysql = require('mysql2/promise');
 const readline = require('readline');
 const DEMO_TODAY = '2025-08-20'; 
 
-
 /* === MySQL Config (ตรงกับ db.sql; root ไม่มีรหัส) === */
 const dbConfig = {
   host: process.env.DB_HOST || '127.0.0.1',
@@ -27,7 +26,7 @@ function menu(){
   console.log('\n======== Expense Tracking App ========');
   console.log(`Welcome ${currentUser.username}`);
   console.log('1. All expenses');
-  console.log("2. Today\'s expense");
+  console.log("2. Today's expense");
   console.log('3. Search expense');
   console.log('4. Add new expense');
   console.log('5. Delete an expense');
@@ -93,7 +92,6 @@ async function showToday() {
   }
 }
 
-
 async function search(){
   const kw = await ask('Search for: ');
   const conn = await connectDB();
@@ -154,3 +152,4 @@ async function main(){
   });
 }
 main().catch(e=>{ console.error('Fatal:', e); process.exit(1); });
+
