@@ -69,20 +69,6 @@ Future<void> main() async {
   }
 }
 
-/* ================= Features ================= */
-// TODO: ให้เพื่อน ๆ แต่ละคนมาเติมโค้ดข้างในเอง
-
-/* ================= Features  showall================= */
-Future<void> showAll(MySqlConnection conn, int userId) async {
-  
-}
-
-/* ================= Features showtoday ================= */
-Future<void> showToday(MySqlConnection conn, int userId) async {
-
-}
-
-/* ================= Features searchExpense================= */
 Future<void> searchExpense(MySqlConnection conn, int userId) async {
   final keyword = _prompt('Search keyword');
   final results = await conn.query(
@@ -101,18 +87,6 @@ Future<void> searchExpense(MySqlConnection conn, int userId) async {
   }
 }
 
-/* ================= Features addExpense================= */
-Future<void> addExpense(MySqlConnection conn, int userId) async {
-
-}
-
-/* ================= Features deleteById================= */
-Future<void> deleteById(MySqlConnection conn, int userId) async {
-
-}
-
-
-/* ================= Helpers ================= */
 String _prompt(String label) {
   stdout.write('$label: ');
   return stdin.readLineSync()!.trim();
@@ -120,9 +94,13 @@ String _prompt(String label) {
 
 String _promptHidden(String label) {
   stdout.write('$label: ');
-  try { stdin.echoMode = false; } catch (_) {}
+  try {
+    stdin.echoMode = false;
+  } catch (_) {}
   final s = stdin.readLineSync()!.trim();
-  try { stdin.echoMode = true; } catch (_) {}
+  try {
+    stdin.echoMode = true;
+  } catch (_) {}
   stdout.writeln();
   return s;
 }

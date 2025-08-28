@@ -9,6 +9,7 @@ app.use(express.json());
 /* ================= Login ================= */
 app.post('/login', async (req, res) => {
   const { username, password } = req.body || {};
+  
   const conn = await connectDB();
 
   // plain password
@@ -23,11 +24,6 @@ app.post('/login', async (req, res) => {
   res.json({ user: rows[0] }); // TODO: generate token ถ้าต้องการ
 });
 
-/* ================= Show All ================= */
-
-/* ================= Show Today ================= */
-
-/* ================= Search ================= */
 app.get('/search', async (req, res) => {
   const { keyword } = req.query;
   const conn = await connectDB();
@@ -41,13 +37,5 @@ app.get('/search', async (req, res) => {
   res.json({ todos: rows });
 });
 
-
-/* ================= Add ================= */
-
-
-/* ================= Delete ================= */
-
-
-/* ================= Start Server ================= */
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));v
+app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
