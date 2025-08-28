@@ -1,96 +1,84 @@
-// bin/dart_git.dart
-// Dart CLI เชื่อมต่อ MySQL + เมนู 1–6
+// bin/dart_today.dart — Dart CLI แสดง Today's expenses เท่านั้น
 import 'dart:io';
 import 'package:mysql1/mysql1.dart';
 
+/* ===== Config ===== */
+const dbHost = '127.0.0.1';
+const dbPort = 3306;          // ถ้า MySQL ใช้ 3307 ให้เปลี่ยนเป็น 3307
+const dbUser = 'root';
+const String? dbPass = null;  // root ไม่มีรหัสต้องเป็น null
+const dbName = 'expense_app';
+const String? DEMO_TODAY = '2025-08-20'; // ใช้วัน Demo
+
+/* ===== Helpers ===== */
+String _prompt(String label) {
+  stdout.write('$label: ');
+  return stdin.readLineSync()?.trim() ?? '';
+}
+
+/* ===== Main ===== */
 Future<void> main() async {
-  /* ---------- MySQL Connection Settings ---------- */
-  final settings = ConnectionSettings(
-    host: '127.0.0.1',
-    port: 3306,
-    user: 'root',
-    password: '',
-    db: 'expense_app',
-  );
+  // connect
+  late MySqlConnection conn;
+  try {
+    conn = await MySqlConnection.connect(ConnectionSettings(
+      host: dbHost, port: dbPort,
+      user: dbUser, password: dbPass, db: dbName,
+    ));
+  } catch (e) {
+    stderr.writeln('❌ Connect failed: $e');
+    return;
+  }
 
-  final conn = await MySqlConnection.connect(settings);
-
-  /* ---------- Login ---------- */
-  stdout.writeln('== Login ==');
+  // login
+  stdout.writeln('===== Login =====');
   final username = _prompt('Username');
-  final password = _promptHidden('Password');
-
+  final password = _prompt('Password');
   final auth = await conn.query(
     'SELECT id FROM users WHERE username=? AND password=? LIMIT 1',
     [username, password],
   );
-
   if (auth.isEmpty) {
-    stdout.writeln('Login failed. Bye!');
+    stdout.writeln('Invalid credentials. Bye!');
     await conn.close();
     return;
   }
   final userId = auth.first[0] as int;
-  stdout.writeln('Login success!');
 
-  /* ---------- Main Menu Loop ---------- */
-  while (true) {
-    stdout.writeln('''
-1) Show all
-2) Show today
-3) Search
-4) Add expense
-5) Delete by id
-6) Exit
-''');
-    switch (_prompt('Choose')) {
-      case '1':
-        await showAll(conn, userId);
-        break;
-      case '2':
-        await showToday(conn, userId);
-        break;
-      case '3':
-        await searchExpense(conn, userId);
-        break;
-      case '4':
-        await addExpense(conn, userId);
-        break;
-      case '5':
-        await deleteById(conn, userId);
-        break;
-      case '6':
-        stdout.writeln('Bye!');
-        await conn.close();
-        return;
-      default:
-        stdout.writeln('Invalid option.');
-    }
-  }
+  // show today only
+  await showToday(conn, userId);
+
+  await conn.close();
 }
 
-Future<void> searchExpense(MySqlConnection conn, int userId) async {
-  final keyword = _prompt('Search keyword');
-  final results = await conn.query(
-    'SELECT id, title, amount, date FROM expenses WHERE user_id = ? AND title LIKE ?',
-    [userId, '%$keyword%'],
-  );
+/* ===== Feature: Today's expenses ===== */
+Future<void> showToday(MySqlConnection conn, int userId) async {
+  final sql = (DEMO_TODAY == null)
+      ? 'SELECT id, item, paid, `date` FROM expenses '
+        'WHERE user_id=? AND DATE(`date`)=CURDATE() ORDER BY `date` DESC'
+      : 'SELECT id, item, paid, `date` FROM expenses '
+        'WHERE user_id=? AND DATE(`date`)=? ORDER BY `date` DESC';
+  final params = (DEMO_TODAY == null) ? [userId] : [userId, DEMO_TODAY];
 
-  if (results.isEmpty) {
-    stdout.writeln('No expenses found matching "$keyword".');
+  final rows = await conn.query(sql, params);
+  if (rows.isEmpty) {
+    stdout.writeln("No items paid today.");
     return;
   }
 
-  stdout.writeln('Search Results:');
-  for (final row in results) {
-    stdout.writeln('ID: ${row[0]}, Title: ${row[1]}, Amount: ${row[2]}, Date: ${row[3]}');
+  stdout.writeln("------------ Today's expenses -----------");
+  int total = 0;
+  for (final r in rows) {
+    final id = r[0] as int;
+    final item = r[1] as String;
+    final paid = r[2] as int;
+    final dateStr = r[3].toString();
+    total += paid;
+    stdout.writeln('$id. $item : ${paid}฿ : $dateStr');
   }
+  stdout.writeln('Total expenses = ${total}฿');
 }
 
-String _prompt(String label) {
-  stdout.write('$label: ');
-  return stdin.readLineSync()!.trim();
-}
 
 String _promptHidden(String label) {
   stdout.write('$label: ');
@@ -103,4 +91,5 @@ String _promptHidden(String label) {
   } catch (_) {}
   stdout.writeln();
   return s;
+
 }
