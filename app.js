@@ -1,4 +1,4 @@
-// app.js
+//app.js
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 const readline = require('readline');
@@ -269,3 +269,4 @@ async function main() {
 
 // เริ่มต้นแอปพลิเคชัน
 main().catch(console.error);
+

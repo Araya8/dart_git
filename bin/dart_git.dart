@@ -154,21 +154,17 @@ Future<void> addExpense(MySqlConnection conn, int userId) async {
 }
 
 Future<void> deleteById(MySqlConnection conn, int userId) async {
-
+  final idStr = _prompt('Enter expense id to delete');
+  final id = int.tryParse(idStr);
+  if (id == null) { stdout.writeln('Invalid id.'); return; }
+  final res = await conn.query(
+    'DELETE FROM expenses WHERE id=? AND user_id=?',
+    [id, userId],
+  );
+  stdout.writeln(res.affectedRows == 0 ? 'Nothing deleted.' : 'Deleted #$id.');
 }
 
 
-/* ================= Helpers ================= */
-String _prompt(String label) {
-  stdout.write('$label: ');
-  return stdin.readLineSync()!.trim();
-}
 
-String _promptHidden(String label) {
-  stdout.write('$label: ');
-  try { stdin.echoMode = false; } catch (_) {}
-  final s = stdin.readLineSync()!.trim();
-  try { stdin.echoMode = true; } catch (_) {}
-  stdout.writeln();
-  return s;
-}
+
+
