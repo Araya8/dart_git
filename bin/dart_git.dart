@@ -66,6 +66,31 @@ Future<void> showToday(MySqlConnection conn, int userId) async {
     return;
   }
 
+
+}
+
+/* ================= Features searchExpense================= */
+Future<void> searchExpense(MySqlConnection conn, int userId) async {
+
+}
+
+/* ================= Features addExpense================= */
+Future<void> addExpense(MySqlConnection conn, int userId) async {
+  final title = _prompt('Enter title');
+  final amount = double.parse(_prompt('Enter amount'));
+  final date = _prompt('Enter date (YYYY-MM-DD)');
+
+  await conn.query(
+    'INSERT INTO expenses (user_id, title, amount, date) VALUES (?, ?, ?, ?)',
+    [userId, title, amount, date],
+  );
+  stdout.writeln('Expense added successfully!');
+}
+
+/* ================= Features deleteById================= */
+Future<void> deleteById(MySqlConnection conn, int userId) async {
+
+=======
   stdout.writeln("------------ Today's expenses -----------");
   int total = 0;
   for (final r in rows) {
@@ -77,6 +102,7 @@ Future<void> showToday(MySqlConnection conn, int userId) async {
     stdout.writeln('$id. $item : ${paid}฿ : $dateStr');
   }
   stdout.writeln('Total expenses = ${total}฿');
+
 }
 
 

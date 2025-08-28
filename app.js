@@ -1,8 +1,8 @@
+
 // app.js — Node CLI สำหรับ expense_app (users.password = plain)
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 const readline = require('readline');
-const DEMO_TODAY = '2025-08-20'; 
 
 /* === MySQL Config (ตรงกับ db.sql; root ไม่มีรหัส) === */
 const dbConfig = {
@@ -26,7 +26,7 @@ function menu(){
   console.log('\n======== Expense Tracking App ========');
   console.log(`Welcome ${currentUser.username}`);
   console.log('1. All expenses');
-  console.log("2. Today's expense");
+  console.log("2. Today\'s expense");
   console.log('3. Search expense');
   console.log('4. Add new expense');
   console.log('5. Delete an expense');
@@ -51,45 +51,49 @@ async function login(){
 }
 
 /* === Features === */
-async function showAll(){
+async function showAll() {
+  console.log('\nChoose...1');  // ตามสเปก
+  console.log('------------ All expenses ------------');
+
   const conn = await connectDB();
-  try{
+  try {
     const [rows] = await conn.execute(
       'SELECT id,item,paid,date FROM expenses WHERE user_id=? ORDER BY date DESC',
       [currentUser.id]
     );
-    if(!rows.length){ console.log('No items.'); return; }
-    let total=0; console.log('--- All expenses ---');
-    rows.forEach(r=>{ console.log(`${r.id}. ${r.item} : ${r.paid}฿ : ${fmt(r.date)}`); total+=Number(r.paid); });
-    console.log(`Total = ${total}฿`);
-  } finally { await conn.end(); menu(); }
-}
-
-async function showToday() {
-  const conn = await connectDB();
-  try {
-    const useDemo = DEMO_TODAY && /^\d{4}-\d{2}-\d{2}$/.test(DEMO_TODAY);
-    const sql = useDemo
-      ? `SELECT id,item,paid,\`date\` FROM expenses
-         WHERE user_id=? AND DATE(\`date\`)=? ORDER BY \`date\` DESC`
-      : `SELECT id,item,paid,\`date\` FROM expenses
-         WHERE user_id=? AND DATE(\`date\`)=CURDATE() ORDER BY \`date\` DESC`;
-    const params = useDemo ? [currentUser.id, DEMO_TODAY] : [currentUser.id];
-
-    const [rows] = await conn.execute(sql, params);
-    if (!rows.length) { console.log('No items paid today.'); return; }
+    if (!rows.length) {
+      console.log('No items.');
+      return menu();
+    }
 
     let total = 0;
-    console.log("------------ Today's expenses -----------");
     rows.forEach(r => {
       console.log(`${r.id}. ${r.item} : ${r.paid}฿ : ${fmt(r.date)}`);
       total += Number(r.paid);
     });
+
     console.log(`Total expenses = ${total}฿`);
   } finally {
     await conn.end();
-    menu();
+    menu();  // แสดงเมนูต่อท้าย 
   }
+}
+
+
+
+async function showToday(){
+  const conn = await connectDB();
+  try{
+    const [rows] = await conn.execute(
+      `SELECT id,item,paid,date FROM expenses
+       WHERE user_id=? AND DATE(date)=CURDATE() ORDER BY date DESC`,
+      [currentUser.id]
+    );
+    if(!rows.length){ console.log('No items paid today.'); return; }
+    let total=0; console.log(`--- Today's expenses ---`);
+    rows.forEach(r=>{ console.log(`${r.id}. ${r.item} : ${r.paid}฿ : ${fmt(r.date)}`); total+=Number(r.paid);});
+    console.log(`Today's total = ${total}฿`);
+  } finally { await conn.end(); menu(); }
 }
 
 async function search(){
@@ -101,7 +105,7 @@ async function search(){
        WHERE user_id=? AND item LIKE ? ORDER BY date DESC`,
       [currentUser.id, `%${kw}%`]
     );
-    if(!rows.length){ console.log(`No item containing "${kw}".`); return; }
+    if(!rows.length){ console.log(`No item: ${kw}`); return; }
     let total=0; console.log(`--- Results for "${kw}" ---`);
     rows.forEach(r=>{ console.log(`${r.id}. ${r.item} : ${r.paid}฿ : ${fmt(r.date)}`); total+=Number(r.paid);});
     console.log(`Total = ${total}฿`);
@@ -110,7 +114,7 @@ async function search(){
 
 async function addNew(){
   const item = await ask('Item: ');
-  const amt  = Number(await ask('Amount (฿): '));
+  const amt  = Number(await ask('Paid: '));
   if(!item || Number.isNaN(amt) || amt<0){ console.log('Invalid input.'); return menu(); }
   const conn = await connectDB();
   try{
@@ -118,21 +122,34 @@ async function addNew(){
       'INSERT INTO expenses (user_id,item,paid,date) VALUES (?,?,?,NOW())',
       [currentUser.id, item, amt]
     );
-    console.log('Added!');
+    console.log('Inserted!');
   } finally { await conn.end(); menu(); }
 }
 
-async function delItem(){
-  const id = Number(await ask('Expense id to delete: '));
-  if(!id){ console.log('Invalid id.'); return menu(); }
+// ===== Delete an item =====
+async function delItem() {
+  console.log('\nChoose...5');                    // แสดงข้อความ Choose...5
+  console.log('===== Delete an item =====');      // หัวข้อการลบ
+
+  const idStr = await ask('Item id: ');           // ให้พิมพ์ id
+  const id = Number(idStr);
+
+  if (!id) {
+    console.log('Invalid id.');
+    return menu();
+  }
+
   const conn = await connectDB();
-  try{
+  try {
     const [r] = await conn.execute(
       'DELETE FROM expenses WHERE id=? AND user_id=?',
       [id, currentUser.id]
     );
-    console.log(r.affectedRows>0 ? 'Deleted!' : 'Not found.');
-  } finally { await conn.end(); await showAll(); }
+    console.log(r.affectedRows > 0 ? 'Deleted!' : 'Not found.');
+  } finally {
+    await conn.end();
+    await showAll();   // โชว์รายการทั้งหมดหลังลบ
+  }
 }
 
 /* === Main === */
@@ -146,10 +163,9 @@ async function main(){
       case '3': await search(); break;
       case '4': await addNew(); break;
       case '5': await delItem(); break;
-      case '6': console.log('Bye!'); rl.close(); process.exit(0);
+      case '6': console.log('-------Bye------'); rl.close(); process.exit(0);
       default: console.log('Invalid choice.'); menu();
     }
   });
 }
 main().catch(e=>{ console.error('Fatal:', e); process.exit(1); });
-
