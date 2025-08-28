@@ -9,6 +9,7 @@ app.use(express.json());
 /* ================= Login ================= */
 app.post('/login', async (req, res) => {
   const { username, password } = req.body || {};
+  
   const conn = await connectDB();
 
   // plain password
@@ -22,17 +23,19 @@ app.post('/login', async (req, res) => {
 
   res.json({ user: rows[0] }); // TODO: generate token ถ้าต้องการ
 });
-/* ================= Features Show All ================= */
 
+app.get('/search', async (req, res) => {
+  const { keyword } = req.query;
+  const conn = await connectDB();
 
-/* ================= Features Show Today================= */
+  const [rows] = await conn.execute(
+    'SELECT id, title, detail, date FROM todos WHERE title LIKE ? OR detail LIKE ?',
+    [`%${keyword}%`, `%${keyword}%`]
+  );
 
+  await conn.end();
+  res.json({ todos: rows });
+});
 
-/* ================= Features searchExpense================= */
-
-
-/* ================= Features addExpense================= */
-
-
-/* ================= Features deleteById================= */
-
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`✅ Server running at http://localhost:${PORT}`));
